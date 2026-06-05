@@ -6,6 +6,7 @@ from datetime import datetime
 from collections import deque
 from typing import List
 
+#ainnnnnnnnn 
 # ==============================================================================
 # 1. CONFIGURAÇÃO DO BANCO DE DADOS (SQLite para persistência)
 # ==============================================================================
