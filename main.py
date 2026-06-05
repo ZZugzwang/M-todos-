@@ -1,4 +1,4 @@
-#ainnn meu cu
+#ainnn meu cu 
 from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey, Table
 from sqlalchemy.orm import declarative_base, sessionmaker, Session, relationship
