@@ -1,4 +1,5 @@
-#ainnn meu cu 
+
+#bolinha de golfe
 from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey, Table
 from sqlalchemy.orm import declarative_base, sessionmaker, Session, relationship
@@ -6,7 +7,6 @@ from datetime import datetime
 from collections import deque
 from typing import List
 
-#ainnnnnnnnn 
 # ==============================================================================
 # 1. CONFIGURAÇÃO DO BANCO DE DADOS (SQLite para persistência)
 # ==============================================================================
