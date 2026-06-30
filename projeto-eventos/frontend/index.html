@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Showline — Gerenciamento de Shows</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar__inner">
+    <a href="#" class="brand">
+      <span class="brand__mark">SHOW<em>LINE</em></span>
+    </a>
+    <div class="topbar__actions">
+      <span class="api-status" id="apiStatus">
+        <span class="dot" id="apiDot"></span>
+        <span id="apiStatusText">verificando API…</span>
+      </span>
+      <button class="btn btn--ghost" id="btnRelatorio">Relatório A–Z</button>
+
+      <span class="auth-box" id="authLoggedOut">
+        <button class="btn btn--ghost" id="btnAbrirLogin">Entrar</button>
+      </span>
+      <span class="auth-box" id="authLoggedIn" hidden>
+        <span class="auth-user">👤 <strong id="authUsername"></strong></span>
+        <button class="btn btn--ghost" id="btnLogout">Sair</button>
+      </span>
+
+      <button class="btn btn--primary" id="btnNovoEvento">+ Criar evento</button>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero__inner">
+    <p class="hero__eyebrow">Sistema de gerenciamento de eventos</p>
+    <h1 class="hero__title">Encontre seu<br>próximo show.</h1>
+    <p class="hero__sub">Inscrições, lotação e fila de espera — tudo em tempo real, direto do seu próprio backend.</p>
+
+    <div class="searchbar">
+      <input type="text" id="searchInput" placeholder="Buscar por nome do evento…">
+      <input type="text" id="searchDate" placeholder="dd/mm/aaaa" inputmode="numeric" maxlength="10" title="Buscar por data">
+      <button class="btn btn--primary" id="btnBuscar">Buscar</button>
+      <button class="btn btn--ghost" id="btnLimpar">Limpar</button>
+    </div>
+
+    <div class="chips" id="categoryChips"></div>
+  </div>
+</section>
+
+<main class="container">
+  <div class="section-head">
+    <h2 id="listTitle">Próximos eventos</h2>
+    <span class="counter" id="eventCount">0 eventos</span>
+  </div>
+
+  <div class="grid" id="eventsGrid">
+    <!-- cards de evento são injetados aqui via JS -->
+  </div>
+
+  <div class="empty-state" id="emptyState" hidden>
+    <p>Nenhum evento encontrado.</p>
+    <span>Crie o primeiro evento ou ajuste sua busca.</span>
+  </div>
+</main>
+
+<footer class="footer">
+  <p>Showline - o melhor gerenciador de eventos feito por 2 estudantes de eletrônica com poucas horas de sono (eu acho)</p>
+</footer>
+
+<!-- ===== Modal: Detalhe do evento / inscrição ===== -->
+<div class="modal-backdrop" id="eventModalBackdrop" hidden>
+  <div class="modal modal--ticket" id="eventModal">
+    <button class="modal__close" id="closeEventModal" aria-label="Fechar">✕</button>
+    <div class="ticket">
+      <div class="ticket__main">
+        <p class="ticket__category" id="modalCategoria">CATEGORIA</p>
+        <h3 class="ticket__title" id="modalNome">Nome do evento</h3>
+        <p class="ticket__desc" id="modalDescricao">Descrição do evento.</p>
+
+        <div class="ticket__meta">
+          <div>
+            <span class="meta-label">Data</span>
+            <span class="meta-value" id="modalData">--/--/----</span>
+          </div>
+          <div>
+            <span class="meta-label">Local</span>
+            <span class="meta-value" id="modalLocal">A definir</span>
+          </div>
+          <div>
+            <span class="meta-label">Preço</span>
+            <span class="meta-value" id="modalPreco">Gratuito</span>
+          </div>
+        </div>
+
+        <div class="capacity">
+          <div class="capacity__bar"><div class="capacity__fill" id="modalCapacityFill"></div></div>
+          <span class="capacity__label" id="modalCapacityLabel">0/0 vagas ocupadas</span>
+        </div>
+
+        <div class="queue-badge" id="modalQueueBadge" hidden>
+          Fila de espera: <strong id="modalQueueCount">0</strong> pessoa(s)
+        </div>
+
+        <p class="ticket__creator">Criado por <strong id="modalCriador">—</strong></p>
+
+        <form class="inscricao-form" id="inscricaoForm">
+          <input type="text" id="inscricaoNome" placeholder="Seu nome" required>
+          <input type="email" id="inscricaoEmail" placeholder="Seu e-mail (opcional)">
+          <button type="submit" class="btn btn--primary" id="btnInscrever">Inscrever-se</button>
+        </form>
+
+        <div class="cancel-row">
+          <input type="text" id="cancelarNome" placeholder="Nome p/ cancelar inscrição">
+          <button class="btn btn--danger" id="btnCancelar">Cancelar inscrição</button>
+        </div>
+
+        <p class="form-feedback" id="formFeedback"></p>
+
+        <div class="owner-actions" id="ownerActions" hidden>
+          <button class="btn btn--ghost btn--full" id="btnEditarEvento">Editar evento</button>
+          <button class="btn btn--danger btn--full" id="btnExcluirEvento">Excluir este evento</button>
+        </div>
+      </div>
+      <div class="ticket__stub">
+        <span class="ticket__stub-label">ID</span>
+        <span class="ticket__stub-id" id="modalId">#000</span>
+        <span class="ticket__stub-barcode">▌▍▎▌▌▍▎▌▍▌▎▍▌▎▌▍▎▌</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Modal: Criar novo evento ===== -->
+<div class="modal-backdrop" id="createModalBackdrop" hidden>
+  <div class="modal" id="createModal">
+    <button class="modal__close" id="closeCreateModal" aria-label="Fechar">✕</button>
+    <h3 class="modal__title" id="createModalTitle">Criar novo evento</h3>
+    <form id="createForm" class="create-form">
+      <label>Nome do evento
+        <input type="text" id="cNome" required>
+      </label>
+      <label>Descrição
+        <textarea id="cDescricao" rows="3"></textarea>
+      </label>
+      <div class="create-form__row">
+        <label>Categoria
+          <input type="text" id="cCategoria" placeholder="Rock, Stand-up, Eletrônica…" value="Geral">
+        </label>
+        <label>Local
+          <input type="text" id="cLocal" placeholder="Nome do local">
+        </label>
+      </div>
+      <div class="create-form__row">
+        <label>Data
+          <input type="text" id="cData" placeholder="dd/mm/aaaa" inputmode="numeric" maxlength="10" required>
+        </label>
+        <label>Lotação máxima
+          <input type="number" id="cLotacao" min="1" value="50" required>
+        </label>
+        <label>Preço (R$)
+          <input type="number" id="cPreco" min="0" step="0.01" value="0">
+        </label>
+      </div>
+      <label>URL da imagem (opcional)
+        <input type="text" id="cImagem" placeholder="https://…">
+      </label>
+      <p class="form-feedback" id="createFeedback"></p>
+      <button type="submit" class="btn btn--primary btn--full" id="createSubmitBtn">Criar evento</button>
+    </form>
+  </div>
+</div>
+
+<!-- ===== Modal: Login / Criar conta ===== -->
+<div class="modal-backdrop" id="authModalBackdrop" hidden>
+  <div class="modal" id="authModal">
+    <button class="modal__close" id="closeAuthModal" aria-label="Fechar">✕</button>
+    <div class="auth-tabs">
+      <button type="button" class="auth-tab auth-tab--active" id="tabLogin">Entrar</button>
+      <button type="button" class="auth-tab" id="tabRegister">Criar conta</button>
+    </div>
+    <form id="authForm" class="create-form">
+      <label>Usuário
+        <input type="text" id="authUsernameInput" minlength="3" required autocomplete="username">
+      </label>
+      <label>Senha
+        <input type="password" id="authPasswordInput" minlength="4" required autocomplete="current-password">
+      </label>
+      <p class="form-feedback" id="authFeedback"></p>
+      <button type="submit" class="btn btn--primary btn--full" id="authSubmitBtn">Entrar</button>
+    </form>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
